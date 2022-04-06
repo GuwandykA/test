@@ -2,42 +2,28 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\ApiController;
 use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\Gift;
 use Illuminate\Support\Facades\Validator;
 
-class UserController extends Controller
+class UserController extends ApiController
 {
 
     public function users()
     {
         $users = User::get();
-        return response()->json([
-            'status' => true,
-            'data' => $users
-        ], 200);
+        return $this->successResponse($users, 200);
     }
 
     public function store(Request $request)
     {
 
-        $validator = Validator::make(
-            $request->all(),
-            [
-                'name' => 'required',
-                'email' => 'required|email|unique:users',
-
-
-            ]
-        );
+        $validator = $this->validateUser;
 
         if ($validator->fails()) {
-            return response()->json([
-                'status' => false,
-                'errors' => $validator->errors()->all()
-            ], 400);
+            return $this->errorResponse($validator->errors(), 422);
         }
 
 
@@ -46,35 +32,33 @@ class UserController extends Controller
         $user->email = $request->email;
         $user->save();
 
-
-        return response()->json([
-            'status' => true,
-            'data' => "Successfully added!!!"
-        ], 201);
+        return $this->successResponse('User Created', 201);
     }
 
     public function user($id)
     {
-        $data = [];
         $user = User::where(['id' => $id])->select('id', 'name', 'email')->first();
         //если нет пользователя
-        if (empty($user)) {
-            return response()->json([
-                'status' => false,
-            ], 404);
+        if (!$user) {
+            return $this->errorResponse('User not found', 404);
         }
 
         $categories = Gift::where('user_id', '=', $id)
             ->where('parent_id', '=', 0)
-            ->with('allChildrenAccounts')
+            ->with('allChildrenGift')
             ->select('id', 'name')
             ->orderBy('id', 'ASC')
             ->get();
         $user['gifts'] = $categories;
 
-        return response()->json([
-            'status' => true,
-            'data' => $user
-        ], 200);
+        return $this->successResponse($user, 200);
+    }
+
+    public function validateUser()
+    {
+        return Validator::make(request()->all(), [
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users',
+        ]);
     }
 }

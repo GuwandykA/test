@@ -2,43 +2,31 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Gift;
 use Illuminate\Support\Facades\Validator;
+use App\Http\Controllers\ApiController;
 
 
-class GiftController extends Controller
+class GiftController extends ApiController
 {
+
     public function store(Request $request)
     {
-
-        $validator = Validator::make(
-            $request->all(),
-            [
-                'name' => 'required',
-                'user_id' => 'required|integer',
-            ]
-        );
+        $validator = $this->validateGift();
 
         if ($validator->fails()) {
-            return response()->json([
-                'status' => false,
-                'errors' => $validator->errors()->all()
-            ], 400);
+            return $this->errorResponse($validator->errors(), 422);
         }
 
 
-        $user = new Gift;
-        $user->name = $request->name;
-        $user->user_id = $request->user_id;
-        $user->parent_id = $request->parent_id;
-        $user->save();
+        $gift = new Gift;
+        $gift->name = $request->name;
+        $gift->user_id = $request->user_id;
+        $gift->parent_id = $request->parent_id;
+        $gift->save();
 
-        return response()->json([
-            'status' => true,
-            'data' => "Successfully added!!!"
-        ], 201);
+        return $this->successResponse('Gift Created', 201);
     }
 
 
@@ -47,13 +35,9 @@ class GiftController extends Controller
         $gift = Gift::where('id', $id)->first();
         //если нет подарок
         if (empty($gift)) {
-            return [
-                'status' => false,
-                'error' => "Woops error!!!"
-
-            ];
+            return $this->errorResponse("Not Found", 404);
         }
-        $child_gift_id = Gift::where('child_gift_id', $id)->get();
+        $child_gift_id = Gift::where('parent_id', $id)->get();
 
         if ($child_gift_id) {
             foreach ($child_gift_id as $cl) {
@@ -62,10 +46,15 @@ class GiftController extends Controller
         }
 
         $gift->forceDelete();
+        return $this->successResponse(null, 'Gift Deleted');
+    }
 
-        return response()->json([
-            'status' => true,
-            'data' => "Successfully deleted!!!"
-        ], 200);
+    public function validateGift()
+    {
+        return Validator::make(request()->all(), [
+            'name' => 'required|string|max:255',
+            'user_id' => 'required|integer|min:1',
+            'parent_id' => 'required|integer|min:1',
+        ]);
     }
 }

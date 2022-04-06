@@ -11,14 +11,14 @@ class Gift extends Model
     protected $table = 'gifts';
     public $fillable = ['name', 'parent_id'];
 
-    public function childrenAccounts()
+    public function children()
     {
         return $this->hasMany('App\Models\Gift', 'parent_id')->select('id', 'name', 'parent_id');
     }
 
-    public function allChildrenAccounts()
+    public function allChildrenGift()
     {
-        return $this->childrenAccounts()->with('allChildrenAccounts');
+        return $this->children()->with('allChildrenGift');
     }
 
 }
