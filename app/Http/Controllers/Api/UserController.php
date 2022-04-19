@@ -20,19 +20,24 @@ class UserController extends ApiController
     public function store(Request $request)
     {
 
-        $validator = $this->validateUser;
+        $validator = Validator::make(request()->all(), [
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|max:255',
+        ]);
 
         if ($validator->fails()) {
             return $this->errorResponse($validator->errors(), 422);
         }
+        $data = $request->all();
+        $ceo = User::create($data);
 
 
-        $user = new User;
-        $user->name = $request->name;
-        $user->email = $request->email;
-        $user->save();
+        // $user = new User;
+        // $user->name = $request->name;
+        // $user->email = $request->email;
+        // $user->save();
 
-        return $this->successResponse('User Created', 201);
+        return $this->successResponse('User Created', null,201);
     }
 
     public function user($id)
@@ -53,6 +58,16 @@ class UserController extends ApiController
 
         return $this->successResponse($user, 200);
     }
+
+    public function data(Request $request)
+    {
+        if ($request->has('name')) {
+            $name = $request->input('name');
+             return $this->successResponse("data", $name,200);
+     }
+        return $this->successResponse("data isn't id", null,200);
+    }
+
 
     public function validateUser()
     {

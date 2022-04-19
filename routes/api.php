@@ -26,3 +26,7 @@ Route::post('/v1/users', [UserController::class, 'store']);
 Route::post('/v1/gift', [GiftController::class, 'store']);
 //удаление подарка
 Route::post('/v1/gift/{id}', [GiftController::class, 'destroy'])->where('id', '[0-9]+');
+
+
+//============================================================================
+Route::get('/v1/data/{name?}', [UserController::class, 'data']);

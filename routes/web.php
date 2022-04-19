@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\NotificationController;
 
 /*
 |--------------------------------------------------------------------------
@@ -12,9 +13,4 @@ use Illuminate\Support\Facades\Route;
 | contains the "web" middleware group. Now create something great!
 |
 */
-
-Route::get('/', function () {
-    return response()->json([
-        'stuff' => phpinfo()
-       ]);
-});
+Route::get('/send-notification', [NotificationController::class, 'sendOfferNotification']);
